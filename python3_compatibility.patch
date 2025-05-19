@@ -1,0 +1,50 @@
+diff --git a/jnius/jnius_utils.pxi b/jnius/jnius_utils.pxi
+index 1234567..89abcde 100644
+--- a/jnius/jnius_utils.pxi
++++ b/jnius/jnius_utils.pxi
+@@ -320,7 +320,12 @@
+             score += 10
+             continue
+ 
+         if r == 'S' or r == 'I':
+-            if isinstance(arg, int) or ((isinstance(arg, long) and arg < 2147483648)):
++            # In Python 3, long type doesn't exist anymore
++            # it's all just 'int'
++            if isinstance(arg, int):
++                score += 10
++                continue
++            # The following is for Python 2 backwards compatibility
++            if hasattr(__builtins__, 'long') and isinstance(arg, __builtins__.long) and arg < 2147483648:
+                 score += 10
+                 continue
+ 
+diff --git a/jnius/reflect.pxi b/jnius/reflect.pxi
+index 1234567..89abcde 100644
+--- a/jnius/reflect.pxi
++++ b/jnius/reflect.pxi
+@@ -1,6 +1,7 @@
+ # cython: language_level=3
+ from cpython.ref cimport PyObject
+ from cpython.unicode cimport PyUnicode_AsUTF8String
++from builtins import str as text_type
+ 
+ cdef extern from "Python.h":
+     cdef int PY_MAJOR_VERSION
+@@ -8,7 +9,7 @@
+ 
+ cdef inline bytes str2bytes(str s):
+-    if isinstance(s, unicode):
++    if isinstance(s, text_type):
+         return s.encode('utf-8')
+     return s
+ 
+diff --git a/setup.py b/setup.py
+index 1234567..89abcde 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1,4 +1,4 @@
+-from distutils.core import setup
++from setuptools import setup
+ from setuptools.extension import Extension
+ from Cython.Build import cythonize
+ import os 
